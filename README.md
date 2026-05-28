@@ -5,7 +5,7 @@ support for virtual hosts, SSL/TLS, and custom modules.
 
 ## Requirements
 
-- Ubuntu 22.04 LTS (Jammy), 24.04 LTS (Noble), or compatible
+- Ubuntu 22.04 LTS (Jammy), 24.04 LTS (Noble), 26.04 LTS (Plucky), or compatible
 - Ansible 2.4 or higher
 - `community.general` collection for apache2_module
 

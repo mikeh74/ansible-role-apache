@@ -11,9 +11,3 @@ apache_modules:
   - ssl
 
 apache_service: apache2
-
-# virtual_hosts:
-#   - name: test
-#     server_name: example.com
-#     server_admin: test@example.com
-#     document_root: /var/www/html/
