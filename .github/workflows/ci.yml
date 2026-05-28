@@ -68,11 +68,11 @@ jobs:
 
       - name: Run playbook
         run: |
-          cd tests && sudo -E ansible-playbook test.yml
+          cd tests && sudo -E "$(command -v ansible-playbook)" test.yml
 
       - name: Run playbook again (idempotence test)
         run: |
-          cd tests && sudo -E ansible-playbook test.yml | tee /tmp/idempotence.log
+          cd tests && sudo -E "$(command -v ansible-playbook)" test.yml | tee /tmp/idempotence.log
           grep -q 'changed=0.*failed=0' /tmp/idempotence.log && (echo 'Idempotence test: pass' && exit 0) || (echo 'Idempotence test: fail' && exit 1)
 
   galaxy:
