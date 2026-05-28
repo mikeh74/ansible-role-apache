@@ -32,14 +32,13 @@ jobs:
         run: ansible-lint
 
   test:
-    name: Test on ${{ matrix.os }}
-    runs-on: ubuntu-latest
+    name: Test on Ubuntu ${{ matrix.ubuntu-version }}
+    runs-on: ubuntu-${{ matrix.ubuntu-version }}
     strategy:
       matrix:
-        os:
-          - ubuntu2204  # Ubuntu 22.04 LTS (Jammy)
-          - ubuntu2404  # Ubuntu 24.04 LTS (Noble)
-          - ubuntu2604  # Ubuntu 26.04 LTS (Plucky)
+        ubuntu-version:
+          - '22.04'  # Ubuntu 22.04 LTS (Jammy)
+          - '24.04'  # Ubuntu 24.04 LTS (Noble)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -49,33 +48,31 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install Ansible
         run: |
           python -m pip install --upgrade pip
           pip install ansible
 
-      - name: Run playbook in Docker
+      - name: Install Ansible Galaxy dependencies
         run: |
-          docker run -d \
-            --name test_container \
-            --privileged \
-            --volume="${PWD}:/ansible-role-apache:ro" \
-            geerlingguy/${{ matrix.os }}:latest \
-            /lib/systemd/systemd
-          
-          # Wait for systemd to be ready
-          sleep 5
-          
-          # Run the playbook
-          docker exec test_container bash -c "
-            apt-get update && 
-            DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-apt &&
-            ansible-playbook /ansible-role-apache/tests/test.yml --syntax-check
-          "
-          
-          # Clean up
-          docker stop test_container
-          docker rm test_container
+          ansible-galaxy collection install community.general
+
+      - name: Run syntax check
+        run: |
+          ansible-playbook tests/test.yml --syntax-check
+
+      - name: Run playbook in check mode
+        run: |
+          ansible-playbook tests/test.yml --check
+
+      - name: Run playbook
+        run: |
+          sudo ansible-playbook tests/test.yml
+
+      - name: Run playbook again (idempotence test)
+        run: |
+          sudo ansible-playbook tests/test.yml | tee /tmp/idempotence.log
+          grep -q 'changed=0.*failed=0' /tmp/idempotence.log && (echo 'Idempotence test: pass' && exit 0) || (echo 'Idempotence test: fail' && exit 1)
 
   galaxy:
     name: Galaxy import check
