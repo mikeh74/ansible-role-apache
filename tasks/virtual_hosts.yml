@@ -1,7 +1,7 @@
 ---
 - name: Add Apache virtualhost for {{ item.name }}
   ansible.builtin.template:
-    src: "templates/virtualhost.conf.j2"
+    src: "virtualhost.conf.j2"
     dest: "/etc/apache2/sites-available/{{ item.name }}.conf"
     owner: root
     group: root
@@ -35,7 +35,7 @@
 
     - name: Add Apache virtualhost SSL for {{ item.name }}
       ansible.builtin.template:
-        src: "templates/virtualhost-ssl.conf.j2"
+        src: "virtualhost-ssl.conf.j2"
         dest: "/etc/apache2/sites-available/{{ item.name }}-ssl.conf"
         owner: root
         group: root
