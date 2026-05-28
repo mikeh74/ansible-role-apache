@@ -57,21 +57,26 @@ jobs:
         run: |
           ansible-galaxy collection install community.general
 
+      - name: Link role for testing
+        run: |
+          mkdir -p /home/runner/.ansible/roles
+          ln -s $GITHUB_WORKSPACE /home/runner/.ansible/roles/apache
+
       - name: Run syntax check
         run: |
-          ansible-playbook tests/test.yml --syntax-check
+          cd tests && ansible-playbook test.yml --syntax-check
 
       - name: Run playbook in check mode
         run: |
-          ansible-playbook tests/test.yml --check
+          cd tests && ansible-playbook test.yml --check
 
       - name: Run playbook
         run: |
-          sudo ansible-playbook tests/test.yml
+          cd tests && sudo -E ansible-playbook test.yml
 
       - name: Run playbook again (idempotence test)
         run: |
-          sudo ansible-playbook tests/test.yml | tee /tmp/idempotence.log
+          cd tests && sudo -E ansible-playbook test.yml | tee /tmp/idempotence.log
           grep -q 'changed=0.*failed=0' /tmp/idempotence.log && (echo 'Idempotence test: pass' && exit 0) || (echo 'Idempotence test: fail' && exit 1)
 
   galaxy:
