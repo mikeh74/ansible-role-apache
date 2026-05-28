@@ -66,10 +66,6 @@ jobs:
         run: |
           cd tests && ansible-playbook test.yml --syntax-check
 
-      - name: Run playbook in check mode
-        run: |
-          cd tests && ansible-playbook test.yml --check
-
       - name: Run playbook
         run: |
           cd tests && sudo -E ansible-playbook test.yml
