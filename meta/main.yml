@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: apache
+  namespace: mhorrocks
+  author: mhorrocks
+  description: Install and configure Apache2 on Ubuntu with virtual host and SSL support
+
+  license: MIT
+
+  min_ansible_version: "2.4"
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+
+  galaxy_tags:
+    - webserver
+    - apache
+    - ubuntu
+
+dependencies: []

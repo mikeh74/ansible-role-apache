@@ -1,0 +1,7 @@
+---
+# Restart apache handler
+- name: Restart apache
+  ansible.builtin.service:
+    name: "{{ apache_service }}"
+    state: restarted
+  become: true

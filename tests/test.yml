@@ -1,0 +1,58 @@
+---
+# Basic test playbook for ansible-role-apache
+- name: Test apache role
+  hosts: localhost
+  become: true
+
+  vars:
+    apache_modules:
+      - rewrite
+      - ssl
+    virtual_hosts:
+      - name: test
+        server_name: test.example.com
+        server_admin: admin@example.com
+        document_root: /var/www/test
+
+  pre_tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      changed_when: false
+
+    - name: Create document root
+      ansible.builtin.file:
+        path: /var/www/test
+        state: directory
+        mode: '0755'
+
+  roles:
+    - role: apache
+
+  post_tasks:
+    - name: Verify Apache is running
+      ansible.builtin.service:
+        name: apache2
+        state: started
+      check_mode: true
+      register: apache_status
+      failed_when: apache_status.changed
+
+    - name: Verify virtualhost config exists
+      ansible.builtin.stat:
+        path: /etc/apache2/sites-available/test.conf
+      register: vhost_config
+      failed_when: not vhost_config.stat.exists
+
+    - name: Verify virtualhost is enabled
+      ansible.builtin.stat:
+        path: /etc/apache2/sites-enabled/test.conf
+      register: vhost_enabled
+      failed_when: not vhost_enabled.stat.exists
+
+    - name: Test Apache configuration
+      ansible.builtin.command: apache2ctl configtest
+      changed_when: false
+      register: configtest
+      failed_when: configtest.rc != 0

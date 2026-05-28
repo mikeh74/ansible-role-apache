@@ -1,0 +1,50 @@
+---
+- name: Add Apache virtualhost for {{ item.name }}
+  ansible.builtin.template:
+    src: "templates/virtualhost.conf.j2"
+    dest: "/etc/apache2/sites-available/{{ item.name }}.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: Restart apache
+
+- name: Symlink virtualhost for {{ item.name }}
+  ansible.builtin.file:
+    src: "/etc/apache2/sites-available/{{ item.name }}.conf"
+    dest: "/etc/apache2/sites-enabled/{{ item.name }}.conf"
+    state: link
+  become: true
+  notify: Restart apache
+
+- name: SSL config
+  when: ssl_cert_path is defined and ssl_key_file is defined
+  become: true
+  block:
+    - name: Check SSL certificate file exists
+      ansible.builtin.stat:
+        path: "{{ ssl_cert_path }}"
+      register: ssl_cert_stat
+      failed_when: not ssl_cert_stat.stat.exists
+
+    - name: Check SSL key file exists
+      ansible.builtin.stat:
+        path: "{{ ssl_key_file }}"
+      register: ssl_key_stat
+      failed_when: not ssl_key_stat.stat.exists
+
+    - name: Add Apache virtualhost SSL for {{ item.name }}
+      ansible.builtin.template:
+        src: "templates/virtualhost-ssl.conf.j2"
+        dest: "/etc/apache2/sites-available/{{ item.name }}-ssl.conf"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart apache
+
+    - name: Symlink virtualhost SSL for {{ item.name }}
+      ansible.builtin.file:
+        src: "/etc/apache2/sites-available/{{ item.name }}-ssl.conf"
+        dest: "/etc/apache2/sites-enabled/{{ item.name }}-ssl.conf"
+        state: link
+      notify: Restart apache

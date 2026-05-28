@@ -1,0 +1,104 @@
+---
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    # Run weekly to catch breaking changes in dependencies
+    - cron: '0 0 * * 0'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible ansible-lint
+
+      - name: Run ansible-lint
+        run: ansible-lint
+
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - ubuntu2204
+          - ubuntu2404
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible
+
+      - name: Run playbook in Docker
+        run: |
+          docker run -d \
+            --name test_container \
+            --privileged \
+            --volume="${PWD}:/ansible-role-apache:ro" \
+            geerlingguy/${{ matrix.os }}:latest \
+            /lib/systemd/systemd
+          
+          # Wait for systemd to be ready
+          sleep 5
+          
+          # Run the playbook
+          docker exec test_container bash -c "
+            apt-get update && 
+            DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-apt &&
+            ansible-playbook /ansible-role-apache/tests/test.yml --syntax-check
+          "
+          
+          # Clean up
+          docker stop test_container
+          docker rm test_container
+
+  galaxy:
+    name: Galaxy import check
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check role structure
+        run: |
+          # Verify required directories exist
+          for dir in defaults handlers meta tasks templates vars; do
+            if [ ! -d "$dir" ]; then
+              echo "Missing required directory: $dir"
+              exit 1
+            fi
+          done
+          
+          # Verify meta/main.yml exists
+          if [ ! -f "meta/main.yml" ]; then
+            echo "Missing meta/main.yml"
+            exit 1
+          fi
+          
+          echo "✓ Role structure is valid for Galaxy import"

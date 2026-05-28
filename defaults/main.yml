@@ -1,0 +1,19 @@
+---
+# defaults file for apache
+
+# defines the list of packages to install for apache
+apache_packages:
+  - apache2
+
+# list of apache modules to enable
+apache_modules:
+  - rewrite
+  - ssl
+
+apache_service: apache2
+
+# virtual_hosts:
+#   - name: test
+#     server_name: example.com
+#     server_admin: test@example.com
+#     document_root: /var/www/html/

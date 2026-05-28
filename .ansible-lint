@@ -1,0 +1,18 @@
+---
+profile: production
+
+exclude_paths:
+  - .github/
+  - .git/
+  - molecule/
+  - tests/  # Test playbook uses relative paths that ansible-lint can't resolve
+
+skip_list:
+  - role-name[path]  # Allow role name with underscores/hyphens
+
+warn_list:
+  - experimental
+  - no-changed-when
+
+# Use YAML 1.2 syntax
+use_default_rules: true
