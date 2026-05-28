@@ -1,10 +1,11 @@
 # Apache2 Role
 
-An Ansible role for installing and configuring Apache2 on Ubuntu systems with support for virtual hosts, SSL/TLS, and custom modules.
+An Ansible role for installing and configuring Apache2 on Ubuntu systems with
+support for virtual hosts, SSL/TLS, and custom modules.
 
 ## Requirements
 
-- Ubuntu 22.04 (Jammy) or compatible
+- Ubuntu 22.04 LTS (Jammy), 24.04 LTS (Noble), or compatible
 - Ansible 2.4 or higher
 - `community.general` collection for apache2_module
 
@@ -58,7 +59,9 @@ ssl_key_file: /etc/ssl/private/example.key
 ssl_chain_file: /etc/ssl/certs/chain.crt  # Optional
 ```
 
-When `ssl_cert_path` and `ssl_key_file` are defined, an SSL virtual host is automatically created on port 443. The role validates that certificate files exist before configuring SSL.
+When `ssl_cert_path` and `ssl_key_file` are defined, an SSL virtual host is
+automatically created on port 443. The role validates that certificate files
+exist before configuring SSL.
 
 ## Features
 
